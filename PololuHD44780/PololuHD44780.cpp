@@ -1,0 +1,98 @@
+#include <PololuHD44780.h>
+
+#define LCD_CLEAR       0x01
+#define LCD_SHOW_BLINK  0x0F
+#define LCD_SHOW_SOLID  0x0E
+#define LCD_HIDE        0x0C
+#define LCD_CURSOR_L    0x10
+#define LCD_CURSOR_R    0x14
+#define LCD_SHIFT_L     0x18
+#define LCD_SHIFT_R     0x1C
+
+PololuHD44780Base::PololuHD44780Base()
+{
+    initialized = false;
+}
+
+void PololuHD44780Base::init2()
+{
+    // The startup procedure comes from Figure 24 of the HD44780 datasheet.  The
+    // delay times in the later part of this function come from Table 6.
+
+    initPins();
+
+    // We need to wait at least 15 ms after VCC reaches 4.5 V.
+    //
+    // Assumption: The AVR's power-on reset is already configured to wait for
+    // tens of milliseconds, so no delay is needed here.
+
+    sendCommand4Bit(0x3);   // Function set
+    _delay_us(4200);        // Needs to be at least 4.1 ms.
+    sendCommand4Bit(0x3);   // Function set
+    _delay_us(150);         // Needs to be at least 100 us.
+    sendCommand4Bit(0x3);   // Function set
+
+    sendCommand4Bit(0b0010);  // 4-bit interface
+    sendCommand(0b00101000);  // 4-bit, 2 line, 5x8 dots font
+
+    sendCommand(0b00001000);  // display off, cursor off, blinking off
+    sendCommand(0b00000001);  // clear display
+    _delay_us(2000);
+    sendCommand(0b00000110);  // entry mode: cursor shifts right, no scrolling
+    sendCommand(0b00001100);  // display on, cursor off, blinking off
+}
+
+size_t PololuHD44780Base::write(uint8_t data)
+{
+    sendData(data);
+    return 1;
+}
+
+size_t PololuHD44780Base::write(const uint8_t * buffer, size_t length)
+{
+    while (length--)
+    {
+        sendData(*buffer++);
+    }
+    return length;
+}
+
+void PololuHD44780Base::clear()
+{
+    sendCommand(LCD_CLEAR);
+
+    // It's not clear how long this command takes because it doesn't say in
+    // Table 6 of the HD44780 datasheet.  A good guess is that it takes 1.52 ms,
+    // since the Return Home command does.
+    _delay_us(2000);
+
+    // TODO: if we are using printf, clear its buffers here
+}
+
+void PololuHD44780Base::gotoXY(uint8_t x, uint8_t y)
+{
+    // Each entry if the RAM address of a line, with its most
+    // significant bit set for convenience.
+    const uint8_t line_mem[] = {0x80, 0xC0, 0x94, 0xD4};
+
+    sendCommand(line_mem[y] + x);
+
+    // This could take up to 37 us according to Table 6 of the HD44780 datasheet.
+    _delay_us(37);
+
+    // TODO: save the location for use with printf
+}
+
+void PololuHD44780Base::loadCustomCharacter(const uint8_t * picture, uint8_t number)
+{
+    uint8_t address = number * 8;
+
+    for(uint8_t i = 0; i < 8; i++)
+    {
+        // Set CG RAM address.
+        sendCommand((1 << 6) | (address + i));
+
+        // Write character data.
+        sendData(pgm_read_byte(picture + i));
+    }
+}
