@@ -39,7 +39,7 @@ public:
      *  done automatically the first time any function is called that writes to
      *  the LCD.  This is useful if you want to get it back to a totally clean
      *  state. */
-    void reset()
+    void reinitialize()
     {
         initialized = true;
         init2();
