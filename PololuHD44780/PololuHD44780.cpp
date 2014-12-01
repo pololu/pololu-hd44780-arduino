@@ -42,6 +42,25 @@ void PololuHD44780Base::init2()
     setDisplayControl(0b100);  // display on, cursor off, blinking off
 }
 
+void PololuHD44780Base::sendAndDelay(uint8_t data, bool rsValue, bool only4bit)
+{
+    init();
+
+    send(data, rsValue, only4bit);
+
+    // Every data transfer or command takes at least 37 us to complete, and most
+    // of them only take that long according to the HD44780 datasheet.  We delay
+    // for 37 us here so we don't have to do it in lots of other places.
+    //
+    // NOTE: If we add support for configurations where the R/W line is
+    // connected, then this delay and others like it should be taken out, and
+    // instead there should be some way to wait for the previous command to
+    // finish before you are sending a new one.  This could be done either in
+    // send() or some other function.
+    _delay_us(37);
+}
+
+
 size_t PololuHD44780Base::write(uint8_t data)
 {
     sendData(data);
@@ -197,4 +216,49 @@ void PololuHD44780Base::autoscroll()
 void PololuHD44780Base::noAutoscroll()
 {
     setEntryMode(entryMode & ~0b01);
+}
+
+PololuHD44780::PololuHD44780(uint8_t rs, uint8_t e, uint8_t db4, uint8_t db5, uint8_t db6, uint8_t db7)
+{
+    this->rs = rs;
+    this->e = e;
+    this->db4 = db4;
+    this->db5 = db5;
+    this->db6 = db6;
+    this->db7 = db7;
+}
+
+void PololuHD44780::initPins()
+{
+    digitalWrite(e, LOW);
+    pinMode(e, OUTPUT);
+    pinMode(rs, OUTPUT);
+    pinMode(db4, OUTPUT);
+    pinMode(db5, OUTPUT);
+    pinMode(db6, OUTPUT);
+    pinMode(db7, OUTPUT);
+}
+
+void PololuHD44780::send(uint8_t data, bool rsValue, bool only4bits)
+{
+    digitalWrite(rs, rsValue);
+
+    if (!only4bits)
+    {
+        sendNibble(data >> 4);
+    }
+    sendNibble(data & 0x0F);
+}
+
+void PololuHD44780::sendNibble(uint8_t data)
+{
+    digitalWrite(db4, data >> 0 & 1);
+    digitalWrite(db5, data >> 1 & 1);
+    digitalWrite(db6, data >> 2 & 1);
+    digitalWrite(db7, data >> 3 & 1);
+
+    digitalWrite(e, HIGH);
+    _delay_us(1);  // Must be at least 450 ns.
+    digitalWrite(e, LOW);
+    _delay_us(1);  // Must be at least 550 ns.
 }

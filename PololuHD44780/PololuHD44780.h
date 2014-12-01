@@ -1,6 +1,20 @@
 #pragma once
 #include <Arduino.h>
 
+/*! \brief General class for handling the HD44780 protocol.
+ *
+ * This is an abstract class that knows about the HD44780 LCD commands but
+ * does not directly read or write from the actual LCD.  To make a usable class,
+ * you need to define a subclass of PololuHD44780Base and implement the
+ * initPins() and send() functions.  The subclass you create will inherit all
+ * the functions from PololuHD44780 base which are documented here, and all of
+ * the functions from the Arduino's Print class, which are listed in
+ * [Print.h in the Arduino IDE source code](https://github.com/arduino/Arduino/blob/master/hardware/arduino/cores/arduino/Print.h).
+ *
+ * Most users of this library will not need to know about this class and should
+ * just use PololuHD44780 instead.  This class is intended for advanced users
+ * who need to write their own LCD hardware access functions for whatever
+ * reason. */
 class PololuHD44780Base : public Print
 {
 public:
@@ -21,6 +35,16 @@ public:
         }
     }
 
+    /*! Reinitialize the LCD.  This performs the same initialization that is
+     *  done automatically the first time any function is called that writes to
+     *  the LCD.  This is useful if you want to get it back to a totally clean
+     *  state. */
+    void reset()
+    {
+        initialized = true;
+        init2();
+    }
+
     /*! Sends data or commands to the LCD.
      *
      * This function, along with initPins(), comprise the hardware abstraction
@@ -34,26 +58,32 @@ public:
      *   the lower 4 bits of the data. */
     virtual void send(uint8_t data, bool rsValue, bool only4bits) = 0;
 
+private:
+
+    void sendAndDelay(uint8_t data, bool rsValue, bool only4bit);
+
     /*! Sends an 8-bit command to the LCD. */
     void sendCommand(uint8_t cmd)
     {
-        send(cmd, false, false);
+        sendAndDelay(cmd, false, false);
     }
 
     /*! Sends a 4-bit command to the LCD. */
     void sendCommand4Bit(uint8_t cmd)
     {
-        send(cmd, false, true);
+        sendAndDelay(cmd, false, true);
     }
 
     /*! Sends 8 bits of a data to the LCD. */
     void sendData(uint8_t data)
     {
-        send(data, true, false);
+        sendAndDelay(data, true, false);
     }
 
-    /*! Clear the contents of the LCD and reset the cursor position to the upper
-     *  left. */
+public:
+
+    /*! Clear the contents of the LCDs, resets the cursor position to the upper
+     *  left, and resets the scroll position. */
     void clear();
 
     /*! Defines a custom character.
@@ -211,7 +241,8 @@ public:
     //void initPrintf();
     //void initPrintf(uint8_t lcdWidth, uint8_t lcdHeight);
 
-    // For compatibility with Arduino's LiquidCrystal.
+    /*! Send an arbitrary command to the LCD.  This is here for compatibility
+     * with the LiquidCrystal library. */
     void command(uint8_t cmd)
     {
         sendCommand(cmd);
@@ -246,4 +277,18 @@ private:
     void setDisplayControl(uint8_t displayControl);
 
     void init2();
+};
+
+class PololuHD44780 : public PololuHD44780Base
+{
+public:
+    PololuHD44780(uint8_t rs, uint8_t e, uint8_t db4, uint8_t db5, uint8_t db6, uint8_t db7);
+
+    virtual void initPins();
+    virtual void send(uint8_t data, bool rsValue, bool only4bits);
+
+private:
+    void sendNibble(uint8_t data);
+
+    uint8_t rs, e, db4, db5, db6, db7;
 };
