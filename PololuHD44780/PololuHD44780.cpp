@@ -50,7 +50,8 @@ size_t PololuHD44780Base::write(uint8_t data)
 
 size_t PololuHD44780Base::write(const uint8_t * buffer, size_t length)
 {
-    while (length--)
+    size_t n = length;
+    while (n--)
     {
         sendData(*buffer++);
     }
