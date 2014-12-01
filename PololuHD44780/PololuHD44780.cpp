@@ -40,6 +40,8 @@ void PololuHD44780Base::init2()
     _delay_us(2000);
     sendCommand(0b00000110);  // entry mode: cursor shifts right, no scrolling
     sendCommand(0b00001100);  // display on, cursor off, blinking off
+
+    displayControl = 0b100;
 }
 
 size_t PololuHD44780Base::write(uint8_t data)
@@ -95,4 +97,51 @@ void PololuHD44780Base::loadCustomCharacter(const uint8_t * picture, uint8_t num
         // Write character data.
         sendData(pgm_read_byte(picture + i));
     }
+}
+
+void PololuHD44780Base::setDisplayControl(uint8_t displayControl)
+{
+    displayControl &= 0b111;
+    sendCommand(0b00001000 | displayControl);
+    this->displayControl = displayControl;
+}
+
+void PololuHD44780Base::cursorSolid()
+{
+    setDisplayControl(displayControl | 0b010 & ~0b001);
+}
+
+void PololuHD44780Base::cursorBlinking()
+{
+    setDisplayControl(displayControl | 0b011);
+}
+
+void PololuHD44780Base::noDisplay()
+{
+    setDisplayControl(displayControl & ~0b100);
+}
+
+void PololuHD44780Base::display()
+{
+    setDisplayControl(displayControl | 0b100);
+}
+
+void PololuHD44780Base::noCursor()
+{
+    setDisplayControl(displayControl & ~0b010);
+}
+
+void PololuHD44780Base::cursor()
+{
+    setDisplayControl(displayControl | 0b010);
+}
+
+void PololuHD44780Base::noBlink()
+{
+    setDisplayControl(displayControl & ~0b001);
+}
+
+void PololuHD44780Base::blink()
+{
+    setDisplayControl(displayControl | 0b001);
 }
