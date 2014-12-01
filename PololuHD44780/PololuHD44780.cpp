@@ -1,4 +1,5 @@
 #include <PololuHD44780.h>
+#include <util/delay.h>
 
 #define LCD_CLEAR       0x01
 #define LCD_SHOW_BLINK  0x0F
@@ -26,22 +27,19 @@ void PololuHD44780Base::init2()
     // Assumption: The AVR's power-on reset is already configured to wait for
     // tens of milliseconds, so no delay is needed here.
 
-    sendCommand4Bit(0x3);   // Function set
-    _delay_us(4200);        // Needs to be at least 4.1 ms.
-    sendCommand4Bit(0x3);   // Function set
-    _delay_us(150);         // Needs to be at least 100 us.
-    sendCommand4Bit(0x3);   // Function set
+    sendCommand4Bit(3);        // Function set
+    _delay_us(4200);           // Needs to be at least 4.1 ms.
+    sendCommand4Bit(3);        // Function set
+    _delay_us(150);            // Needs to be at least 100 us.
+    sendCommand4Bit(3);        // Function set
 
-    sendCommand4Bit(0b0010);  // 4-bit interface
-    sendCommand(0b00101000);  // 4-bit, 2 line, 5x8 dots font
+    sendCommand4Bit(0b0010);   // 4-bit interface
+    sendCommand(0b00101000);   // 4-bit, 2 line, 5x8 dots font
 
-    sendCommand(0b00001000);  // display off, cursor off, blinking off
-    sendCommand(0b00000001);  // clear display
-    _delay_us(2000);
-    sendCommand(0b00000110);  // entry mode: cursor shifts right, no scrolling
-    sendCommand(0b00001100);  // display on, cursor off, blinking off
-
-    displayControl = 0b100;
+    setDisplayControl(0b000);  // display off, cursor off, blinking off
+    clear();
+    setEntryMode(0b10);        // cursor shifts right, no auto-scrolling
+    setDisplayControl(0b100);  // display on, cursor off, blinking off
 }
 
 size_t PololuHD44780Base::write(uint8_t data)
@@ -67,8 +65,6 @@ void PololuHD44780Base::clear()
     // Table 6 of the HD44780 datasheet.  A good guess is that it takes 1.52 ms,
     // since the Return Home command does.
     _delay_us(2000);
-
-    // TODO: if we are using printf, clear its buffers here
 }
 
 void PololuHD44780Base::gotoXY(uint8_t x, uint8_t y)
@@ -77,12 +73,13 @@ void PololuHD44780Base::gotoXY(uint8_t x, uint8_t y)
     // significant bit set for convenience.
     const uint8_t line_mem[] = {0x80, 0xC0, 0x94, 0xD4};
 
+    // Avoid out-of-bounds array access.
+    if (y > 3) { y = 3; }
+
     sendCommand(line_mem[y] + x);
 
     // This could take up to 37 us according to Table 6 of the HD44780 datasheet.
     _delay_us(37);
-
-    // TODO: save the location for use with printf
 }
 
 void PololuHD44780Base::loadCustomCharacter(const uint8_t * picture, uint8_t number)
@@ -92,23 +89,36 @@ void PololuHD44780Base::loadCustomCharacter(const uint8_t * picture, uint8_t num
     for(uint8_t i = 0; i < 8; i++)
     {
         // Set CG RAM address.
-        sendCommand((1 << 6) | (address + i));
+        sendCommand(0b01000000 | (address + i));
 
         // Write character data.
         sendData(pgm_read_byte(picture + i));
     }
 }
 
+void PololuHD44780Base::loadCustomCharacterFromRam(const uint8_t * picture, uint8_t number)
+{
+    uint8_t address = number * 8;
+
+    for(uint8_t i = 0; i < 8; i++)
+    {
+        // Set CG RAM address.
+        sendCommand(0b01000000 | (address + i));
+
+        // Write character data.
+        sendData(picture[i]);
+    }
+}
+
 void PololuHD44780Base::setDisplayControl(uint8_t displayControl)
 {
-    displayControl &= 0b111;
     sendCommand(0b00001000 | displayControl);
     this->displayControl = displayControl;
 }
 
 void PololuHD44780Base::cursorSolid()
 {
-    setDisplayControl(displayControl | 0b010 & ~0b001);
+    setDisplayControl((displayControl | 0b010) & ~0b001);
 }
 
 void PololuHD44780Base::cursorBlinking()
@@ -144,4 +154,46 @@ void PololuHD44780Base::noBlink()
 void PololuHD44780Base::blink()
 {
     setDisplayControl(displayControl | 0b001);
+}
+
+void PololuHD44780Base::scrollDisplayLeft()
+{
+    sendCommand(0b00011000);
+}
+
+void PololuHD44780Base::scrollDisplayRight()
+{
+    sendCommand(0b00011100);
+}
+
+void PololuHD44780Base::home()
+{
+    sendCommand(0b00000010);
+    _delay_us(1600); // needs to be at least 1.52 ms
+}
+
+void PololuHD44780Base::setEntryMode(uint8_t entryMode)
+{
+    sendCommand(0b00000100 | entryMode);
+    this->entryMode = entryMode;
+}
+
+void PololuHD44780Base::leftToRight()
+{
+    setEntryMode(entryMode | 0b10);
+}
+
+void PololuHD44780Base::rightToLeft()
+{
+    setEntryMode(entryMode & ~0b10);
+}
+
+void PololuHD44780Base::autoscroll()
+{
+    setEntryMode(entryMode | 0b01);
+}
+
+void PololuHD44780Base::noAutoscroll()
+{
+    setEntryMode(entryMode & ~0b01);
 }

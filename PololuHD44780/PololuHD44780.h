@@ -61,6 +61,11 @@ public:
      * @param number A number between 0 and 7. */
     void loadCustomCharacter(const uint8_t * picture, uint8_t number);
 
+    /*! Defines a custom character from RAM.
+     * @param picture A pointer toe the character dot pattern, in RAM.
+     * @param number A number between 0 and 7. */
+    void loadCustomCharacterFromRam(const uint8_t * picture, uint8_t number);
+
     /*! This overload of loadCustomCharacter is only provided for compatibility
      * with OrangutanLCD; a lot of Orangutan code defines an array of chars for
      * custom character pictures. */
@@ -69,11 +74,25 @@ public:
         loadCustomCharacter((const uint8_t *)picture, number);
     }
 
+    /*! Defines a custom character.
+     * This is provided for compatibility with the LiquidCrystal library. */
+    void createChar(uint8_t number, uint8_t picture[])
+    {
+        loadCustomCharacterFromRam(picture, number);
+    }
+
     /*! Change the location of the cursor.  The cursor (whether visible or invisible),
      *  is the place where the next character will be displayed when.
      * @param x The number of the column to go to, with 0 being the leftmost column.
      * @param y The number of the row to go to, with 0 being the top row. */
     void gotoXY(uint8_t x, uint8_t y);
+
+    /*! Changes the location of the cursor.  This is just a wrapper around
+     * gotoXY provided for compaitibility with the LiquidCrystal library. */
+    void setCursor(uint8_t col, uint8_t row)
+    {
+        gotoXY(col, row);
+    }
 
     /*! Change the cursor to the beginning of the specified line.
      *
@@ -155,23 +174,42 @@ public:
      * the bounds of the screen. */
     void cursorBlinking();
 
-    void moveCursor(uint8_t direction, uint8_t num);
-    void scroll(uint8_t direction, uint8_t num, uint16_t delay_time);
-    void initPrintf();
-    void initPrintf(uint8_t lcdWidth, uint8_t lcdHeight);
+    /*! Scrolls everything on the screen one position to the left.
+     *
+     * This command takes about 37 microseconds. */
+    void scrollDisplayLeft();
 
-    // Useful methods from Arduino's LiquidCrystal:
+    /*! Scrolls everything on the screen one position to the right.
+     *
+     * This command takes about 37 microseconds. */
+    // TODO: add a better explanation of scrolling in the class reference
+    void scrollDisplayRight();
+
+    /*! Resets the screen scrolling position back to the default and moves the
+     *  cursor to the upper left corner of the screen.
+     *
+     * This command takes about 1600 microseconds, so it would be faster to
+     * instead call scrollDisplayLeft() or scrollDisplayRight() the appropriate
+     * number of times and then call gotoXY(0, 0). */
     void home();
 
-    void scrollDisplayLeft();
-    void scrollDisplayRight();
+    /*! Puts the LCD into left-to-right mode: the cursor will shift to the right
+     *  after any character is written.  This is the default behavior. */
     void leftToRight();
+
+    /*! Puts the LCD into right-to-left mode: the cursor will shift to the left
+     *  after any character is written. */
     void rightToLeft();
+
+    /*! Turns on auto-scrolling. */
+    // TODO: better explanation of this
     void autoscroll();
+
+    /*! Turns off auto-scrolling.  Auto-scrolling is off by default. */
     void noAutoscroll();
 
-    void createChar(uint8_t, uint8_t[]);
-    void setCursor(uint8_t, uint8_t);
+    //void initPrintf();
+    //void initPrintf(uint8_t lcdWidth, uint8_t lcdHeight);
 
     // For compatibility with Arduino's LiquidCrystal.
     void command(uint8_t cmd)
@@ -191,15 +229,21 @@ private:
     bool initialized;
 
     /* The lower three bits of this store the arguments to the
-     * "Display on/off control" HD44780 command that we last sent.
+     * last "Display on/off control" HD44780 command that we sent.
      * bit 2: D: Whether the display is on.
      * bit 1: C: Whether the cursor is shown.
      * bit 0: B: Whether the cursor is blinking. */
     uint8_t displayControl;
 
+    /* The lower two bits of this variable store the arguments to the
+     * last "Entry mode set" HD44780 command that we sent.
+     * bit 1: I/D: 0 for moving the cursor to the left after data is written,
+     *        1 for moving the cursor to the right.
+     * bit 0: 1 for autoscrolling. */
+    uint8_t entryMode;
+
+    void setEntryMode(uint8_t entryMode);
     void setDisplayControl(uint8_t displayControl);
 
     void init2();
-
-
 };
