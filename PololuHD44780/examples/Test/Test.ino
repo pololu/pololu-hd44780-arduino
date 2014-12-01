@@ -4,6 +4,8 @@
 #include <PololuHD44780.h>
 #include <util/delay.h>
 
+// TODO: change this to use PololuHD44780, remove this class and make sure PololuHD44780 works
+
 class MyLCD : public PololuHD44780Base
 {
     static const uint8_t rs = 7;
@@ -22,8 +24,6 @@ public:
 
     virtual void send(uint8_t data, bool rsValue, bool only4bits)
     {
-        init();
-
         FastGPIO::Pin<rs>::setOutput(rsValue);
 
         USBPause usbPause;
@@ -37,11 +37,6 @@ public:
             sendNibble(data >> 4);
         }
         sendNibble(data & 0x0F);
-
-        // Every data transfer or command takes at least 37 us to
-        // complete, and most of them only take that long according
-        // to the HD44780 datasheet.
-        _delay_us(37);
     }
 
 private:
@@ -112,20 +107,26 @@ void setup()
   loadCustomCharacters();
 }
 
-void wait()
+// Prints the ID of the screen we are currently showing and waits for
+// the user to send input on the serial monitor before continuing.
+void wait(uint16_t id)
 {
-    delay(1000);
+  SERIAL_PORT_MONITOR.println(id);
+  SERIAL_PORT_MONITOR.flush();
+  while(SERIAL_PORT_MONITOR.read() == -1);
 }
 
 void loop()
 {
+  lcd.reinitialize();
+
   // Test both overloads of write
   // Expected screen: "Hello   "
   //                  "        "
   lcd.clear();
   lcd.write('H');
   lcd.write("ello");
-  wait();
+  wait(0);
 
   // Test custom characters
   // Expected screen:  "0:[smile] 7:[arrow] "
@@ -134,7 +135,7 @@ void loop()
   lcd.write("0:\x00 7:\x07", 7);
   lcd.gotoLine(1);
   lcd.write("1:\x01");
-  wait();
+  wait(10);
 
   // Test print and goto
   // Expected screen: "Hi there"
@@ -146,87 +147,103 @@ void loop()
   lcd.gotoXY(0, 1);
   lcd.print(123456789);
   lcd.print("abcdef");
-  wait();
+  wait(20);
 
   // Test noDisplay
   // Expected screen: empty
   lcd.noDisplay();
-  wait();
+  wait(30);
 
   // Test display()
   // Expected screen: "Hi there"
   //                  "12345678"
   lcd.display();
-  wait();
+  wait(40);
 
   // Test cursor().  The space should have a cursor on it now.
   lcd.cursor();
-  lcd.gotoXY(0, 2);
+  lcd.gotoXY(2, 0);
+  wait(45);
 
   // Test noCursor().  The cursor should be gone.
   lcd.noCursor();
-  wait();
+  wait(50);
 
   // Test cursorSolid().  The cursor should be solid.
   lcd.cursorSolid();
-  wait();
+  wait(60);
 
   // Test cursorBlinking().  The cursor should be blinking.
   lcd.cursorBlinking();
-  wait();
+  wait(70);
 
   // Test noBlink().  The cursor should be solid.
   lcd.noBlink();
-  wait();
+  wait(80);
 
   // Test blink().  The cursor should be blinking.
   lcd.blink();
-  wait();
+  wait(90);
 
   // Test scrollDisplayLeft.
-  // Expected screen: "i there "
+  // Expected screen: "i there " (with a blinking cursor on the second column)
   //                  "23456789"
   lcd.scrollDisplayLeft();
-  wait();
+  wait(100);
 
   // Test scrollDisplayLeft.
-  // Expected screen: " there  "
+  // Expected screen: " there  " (with a blinking cursor on the first column)
   //                  "3456789a"
   lcd.scrollDisplayLeft();
-  wait();
+  wait(110);
 
   // Test scrollDisplayRight.
-  // Expected screen: "i there "
+  // Expected screen: "i there " (with a blinking cursor on the second column)
   //                  "23456789"
   lcd.scrollDisplayRight();
-  wait();
+  wait(120);
 
   // Test home.
-  // Expected screen: "Hi there"
+  // Expected screen: "Hi there" (with a blinking cursor over H)
   //                  "12345678"
   lcd.home();
-  wait();
+  wait(130);
 
-  // Test clear().  The screen should be empty.
+  // Test clear().  The screen should be empty except for a blinking cursor in the upper left.
   lcd.clear();
-  wait();
+  wait(140);
 
   // Test leftToRight and rightToLeft
   // Expected screen: "abcdef  "
   //                  "        "
   lcd.print("abXX");
   lcd.rightToLeft();
-  lcd.print("dc");
+  lcd.print("Xdc");
   lcd.leftToRight();
   lcd.gotoXY(4, 0);
   lcd.print("ef");
-  wait();
+  wait(150);
 
   // Test autoscrolling
-  // TODO: figure out what we expect to see here
+  // Expected screen: "efghijkl"
+  //                  "        "
   lcd.autoscroll();
-  lcd.print("hijk");
+  lcd.print("ghij");
   lcd.noAutoscroll();
-  lcd.print("lmno");
-  wait();
+  lcd.print("klmn");
+  wait(160);
+
+  // Test that the screen can really hold 40 characters on each line,
+  // and that it can display the last 4 columns with the first 4 columns.
+  // Expected screen: "!@#$abcd"
+  //                  "%^&*ABCD"
+  lcd.clear();
+  lcd.print("abcdefghijklmnopqrstuvwxyz0123456789!@#$--");
+  lcd.gotoLine(1);
+  lcd.print("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789%^&*--");
+  lcd.scrollDisplayRight();
+  lcd.scrollDisplayRight();
+  lcd.scrollDisplayRight();
+  lcd.scrollDisplayRight();
+  wait(170);
 }
