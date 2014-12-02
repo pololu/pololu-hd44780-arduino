@@ -1,7 +1,7 @@
 # PololuHD44780 LCD library for Arduino
 
 Version: 1.0.0<br/>
-Release date: 2014-12-01<br/>
+Release date: 2014 Dec 01<br/>
 [www.pololu.com](http://www.pololu.com/)
 
 ## Summary
