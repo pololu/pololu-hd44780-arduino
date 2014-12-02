@@ -1,3 +1,14 @@
+// Copyright (C) Pololu Corporation.  See LICENSE.txt for more details.
+
+/*! \file PololuHD44780.h
+ *
+ * This is the main header file for the %PololuHD44780 library.
+ *
+ * For an overview of the library's features, see
+ * https://github.com/pololu/pololu-hd44780-arduino.  That is the main
+ * repository for the library, though copies of the library may exist in other
+ * repositories. */
+
 #pragma once
 #include <Arduino.h>
 #include <util/delay.h>
@@ -7,15 +18,41 @@
  * This is an abstract class that knows about the HD44780 LCD commands but
  * does not directly read or write from the actual LCD.  To make a usable class,
  * you need to define a subclass of PololuHD44780Base and implement the
- * initPins() and send() functions.  The subclass you create will inherit all
- * the functions from PololuHD44780 base which are documented here, and all of
- * the functions from the Arduino's Print class, which are listed in
- * [Print.h in the Arduino IDE source code](https://github.com/arduino/Arduino/blob/master/hardware/arduino/cores/arduino/Print.h).
+ * initPins() and send() functions.
  *
- * Most users of this library will not need to know about this class and should
- * just use PololuHD44780 instead.  This class is intended for advanced users
- * who need to write their own LCD hardware access functions for whatever
- * reason. */
+ * The subclass will inherit all the functions from PololuHD44780Base which are
+ * documented here.  It will also inherit all of the functions from the Arduino `Print` class.
+ * For more information about what the `Print` class provides, see the [Arduino print() documentation](http://arduino.cc/en/Serial/Print) or look at [Print.h in the Arduino IDE source code](https://github.com/arduino/Arduino/blob/master/hardware/arduino/cores/arduino/Print.h).
+ *
+ * Most users of this library will not need to directly use this class and
+ * should use PololuHD44780 or some other subclass of PololuHD44780Base defined
+ * in a different library.
+ *
+ * ## LCD scrolling ##
+ *
+ * The PololuHD44780Base class provides several functions related to scrolling:
+ *
+ * * scrollDisplayLeft() scrolls everything on the screen one position to the left.
+ * * scrollDisplayRight() scrolls everything on the screen one position to the right.
+ * * autoscroll() and noAutoscroll() control whether auto-scrolling is enabled.
+ * * home() and clear() both reset the scroll position
+ *
+ * The HD44780 actually stores 40 columns internally.  By default, the left-most
+ * internal columns are the ones that are actually displayed on the screen, but
+ * the scrolling features allow that correspondence to change.  The scrolling
+ * wraps around, so it is possible to display some of the right-most columns on
+ * the screen at the same time as some of the left-most columns.
+ *
+ * For the gotoXY() function, the x coordinate actually corresponds to the
+ * internal column index.  The left-most internal column has an x coordinate of
+ * 0, and the right-most has an x coordinate of 39.
+ *
+ * For example, if you are controlling a 2&times;8 character LCD and you call
+ * scrollDisplayLeft() 35 times (or call scrollDisplayRight() 5 times), then the
+ * X coordinates of the columns displayed, from left to right, will be 35, 36,
+ * 37, 38, 39, 0, 1, and 2.
+ *
+ */
 class PololuHD44780Base : public Print
 {
 public:
@@ -118,7 +155,12 @@ public:
     }
 
     /*! Change the location of the cursor.  The cursor (whether visible or invisible),
-     *  is the place where the next character will be displayed when.
+     *  is the place where the next character written to the LCD will be displayed.
+     *
+     * Note that the scrolling features of the LCD change the correspondence
+     * between the `x` parameter and the physical column that the data is
+     * displayed on.  See the "LCD scrolling" section above for more information.
+     *
      * @param x The number of the column to go to, with 0 being the leftmost column.
      * @param y The number of the row to go to, with 0 being the top row. */
     void gotoXY(uint8_t x, uint8_t y);
@@ -218,7 +260,6 @@ public:
     /*! Scrolls everything on the screen one position to the right.
      *
      * This command takes about 37 microseconds. */
-    // TODO: add a better explanation of scrolling in the class reference
     void scrollDisplayRight();
 
     /*! Resets the screen scrolling position back to the default and moves the
@@ -237,8 +278,11 @@ public:
      *  after any character is written. */
     void rightToLeft();
 
-    /*! Turns on auto-scrolling. */
-    // TODO: better explanation of this
+    /*! Turns on auto-scrolling.
+     *
+     * When auto-scrolling is enabled, every time a character is written, the
+     * screen will automatically scroll by one column in the appropriate
+     * direction. */
     void autoscroll();
 
     /*! Turns off auto-scrolling.  Auto-scrolling is off by default. */
@@ -254,8 +298,15 @@ public:
         sendCommand(cmd);
     }
 
-    // These are required in order to inherit from Print:
-    virtual size_t write(uint8_t);
+    /*! Writes a single character to the LCD. */
+    virtual size_t write(uint8_t c);
+
+    /*! Writes multiple characters to the LCD.
+     *
+     * @param buffer Pointer to a string of characters in RAM, not
+     *   necessarily null-terminated.
+     * @param size The number of characters to write to the LCD, excluding any
+     *  null termination character. */
     virtual size_t write(const uint8_t * buffer, size_t size);
 
     // This allows us to easily call overrides of write that are
@@ -285,7 +336,7 @@ private:
     void init2();
 };
 
-/*! Main class for interfacing with the HD44780 LCDs.
+/*! \brief Main class for interfacing with the HD44780 LCDs.
  *
  * This class is suitable for controlling an HD44780 LCD assuming that the LCD's
  * RS, E, DB4, DB5, DB6, and DB7 pins are each connected to a pin on the
@@ -311,7 +362,23 @@ private:
 class PololuHD44780 : public PololuHD44780Base
 {
 public:
-    PololuHD44780(uint8_t rs, uint8_t e, uint8_t db4, uint8_t db5, uint8_t db6, uint8_t db7)
+    /*! Creates a new instance of PololuHD44780.
+     *
+     * @param rs The pin number for the microcontroller pin that is
+     *   connected to the RS pin of the LCD.
+     * @param e The pin number for the microcontroller pin that is
+     *   connected to the E pin of the LCD.
+     * @param db4 The pin number for the microcontroller pin that is
+     *   connected to the DB4 pin of the LCD.
+     * @param db5 The pin number for the microcontroller pin that is
+     *   connected to the DB5 pin of the LCD.
+     * @param db6 The pin number for the microcontroller pin that is
+     *   connected to the DB6 pin of the LCD.
+     * @param db7 The pin number for the microcontroller pin that is
+     *   connected to the DB7 pin of the LCD.
+     */
+    PololuHD44780(uint8_t rs, uint8_t e, uint8_t db4, uint8_t db5,
+        uint8_t db6, uint8_t db7)
     {
         this->rs = rs;
         this->e = e;
