@@ -1,0 +1,32 @@
+PololuHD44780Base	KEYWORD1
+
+initPins	KEYWORD2
+init	KEYWORD2
+reinitialize	KEYWORD2
+send	KEYWORD2
+clear	KEYWORD2
+loadCustomCharacter	KEYWORD2
+loadCustomCharacterFromRam	KEYWORD2
+createChar	KEYWORD2
+gotoXY	KEYWORD2
+setCursor	KEYWORD2
+gotoLine	KEYWORD2
+noDisplay	KEYWORD2
+display	KEYWORD2
+noCursor	KEYWORD2
+cursor	KEYWORD2
+noBlink	KEYWORD2
+blink	KEYWORD2
+cursorSolid	KEYWORD2
+cursorBlinking	KEYWORD2
+scrollDisplayLeft                       KEYWORD2
+scrollDisplayRight                      KEYWORD2
+home                                    KEYWORD2
+leftToRight                             KEYWORD2
+rightToleft                             KEYWORD2
+autoscroll                              KEYWORD2
+noAutoscroll                            KEYWORD2
+command                                 KEYWORD2
+write                                   KEYWORD2
+
+PololuHD44780                           KEYWORD1
