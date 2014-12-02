@@ -53,13 +53,10 @@ void PololuHD44780Base::sendAndDelay(uint8_t data, bool rsValue, bool only4bit)
     // for 37 us here so we don't have to do it in lots of other places.
     //
     // NOTE: If we add support for configurations where the R/W line is
-    // connected, then this delay and others like it should be taken out, and
-    // instead there should be some way to wait for the previous command to
-    // finish before you are sending a new one.  This could be done either in
-    // send() or some other function.
+    // connected, then this delay and others like it should be disabled, and we
+    // should instead wait for the busy flag before sending the next command.
     _delay_us(37);
 }
-
 
 size_t PololuHD44780Base::write(uint8_t data)
 {
