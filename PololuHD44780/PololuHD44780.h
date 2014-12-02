@@ -1,5 +1,6 @@
 #pragma once
 #include <Arduino.h>
+#include <util/delay.h>
 
 /*! \brief General class for handling the HD44780 protocol.
  *
@@ -46,6 +47,11 @@ public:
     }
 
     /*! Sends data or commands to the LCD.
+     *
+     * The initPins() function will always be called before the first time this
+     * function is called.  This function does not need to worry about the
+     * delays necessary to make sure the previous command has finished; that is
+     * taken care of by PololuHD44780Base.
      *
      * This function, along with initPins(), comprise the hardware abstraction
      * layer for the LCD, and must be defined in a subclass of
@@ -279,16 +285,76 @@ private:
     void init2();
 };
 
+/*! Main class for interfacing with the HD44780 LCDs.
+ *
+ * This class is suitable for controlling an HD44780 LCD assuming that the LCD's
+ * RS, E, DB4, DB5, DB6, and DB7 pins are each connected to a pin on the
+ * microcontroller, each of those six microcontroller pins is supported by the
+ * Arduino's `pinMode` and `digitalWrite` functions, and those pins are not
+ * being used for any other purpose that conflicts with the LCD.
+ *
+ * This class sets the E pin to be an output driving low the first time you use
+ * the LCD, and it assumes that no other code will change that pin.  You cannot
+ * use E for any other purposes because if the LCD sees a pulse on the E pin
+ * then it might consider that to be a command or data, and the LCD state will
+ * become corrupted.
+ *
+ * For the other pins (RS, DB4, DB5, and DB6), this library reconfigures them
+ * each time they are used, so it is OK if you have other code that uses those
+ * pins for other purposes.  Before writing to the LCD, you just need to disable
+ * any peripherals (such as UARTs) that override the output values of those
+ * pins.
+ *
+ * If you cannot meet these conditions, you might be able to control your LCD
+ * using a custom subclass of PololuHD44780Base.  You can use this class as a
+ * reference for how to do that. */
 class PololuHD44780 : public PololuHD44780Base
 {
 public:
-    PololuHD44780(uint8_t rs, uint8_t e, uint8_t db4, uint8_t db5, uint8_t db6, uint8_t db7);
+    PololuHD44780(uint8_t rs, uint8_t e, uint8_t db4, uint8_t db5, uint8_t db6, uint8_t db7)
+    {
+        this->rs = rs;
+        this->e = e;
+        this->db4 = db4;
+        this->db5 = db5;
+        this->db6 = db6;
+        this->db7 = db7;
+    }
 
-    virtual void initPins();
-    virtual void send(uint8_t data, bool rsValue, bool only4bits);
+    virtual void initPins()
+    {
+        digitalWrite(e, LOW);
+        pinMode(e, OUTPUT);
+    }
+
+    virtual void send(uint8_t data, bool rsValue, bool only4bits)
+    {
+        digitalWrite(rs, rsValue);
+
+        pinMode(rs, OUTPUT);
+        pinMode(db4, OUTPUT);
+        pinMode(db5, OUTPUT);
+        pinMode(db6, OUTPUT);
+        pinMode(db7, OUTPUT);
+
+        if (!only4bits) { sendNibble(data >> 4); }
+        sendNibble(data & 0x0F);
+    }
 
 private:
-    void sendNibble(uint8_t data);
+
+    void sendNibble(uint8_t data)
+    {
+        digitalWrite(db4, data >> 0 & 1);
+        digitalWrite(db5, data >> 1 & 1);
+        digitalWrite(db6, data >> 2 & 1);
+        digitalWrite(db7, data >> 3 & 1);
+
+        digitalWrite(e, HIGH);
+        _delay_us(1);  // Must be at least 450 ns.
+        digitalWrite(e, LOW);
+        _delay_us(1);  // Must be at least 550 ns.
+    }
 
     uint8_t rs, e, db4, db5, db6, db7;
 };
