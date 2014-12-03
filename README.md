@@ -1,7 +1,7 @@
 # PololuHD44780 LCD library for Arduino
 
 Version: 1.0.0<br/>
-Release date: 2014 Dec 01<br/>
+Release date: 2014 Dec 05<br/>
 [www.pololu.com](http://www.pololu.com/)
 
 ## Summary
@@ -15,6 +15,10 @@ This library assumes that you have the RS, E, DB4, DB5. DB6, and DB7 pins of the
 This library was designed to be used with the Arduino IDE versions 1.0.x or 1.5.x and will probably not work with earlier versions.
 
 This library should work with any board that can be programmed by those versions of the Arduino IDE.
+
+## Getting Started
+
+Download the [pololu-hd44780-arduino library from github](https://github.com/pololu/pololu-hd44780-arduino), decompress it, and drag the "PololuHD44780" folder into the "libraries" subdirectory inside your Arduino sketchbook directory.  You can view your sketchbook location by selecting File->Preferences in the Arduino environment.  If there is not already a "libraries" folder in that location, you should create it yourself.  After installing the library, restart the Arduino environment.  Example code for using this library can be found in the File->Examples menu.
 
 ## Creating a PololuHD44780 object
 
@@ -72,4 +76,4 @@ For complete documentation of this library, including many features that were no
 
 ## Version history
 
-* 1.0.0 (2014 Dec 01): Original release.
+* 1.0.0 (2014 Dec 05): Original release.
