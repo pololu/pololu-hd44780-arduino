@@ -83,7 +83,7 @@ void loop()
   //                   "1:[diamond]        "
   lcd.clear();
   lcd.write("0:\x00 7:\x07", 7);
-  lcd.gotoLine(1);
+  lcd.gotoXY(0, 1);
   lcd.write("1:\x01");
   wait(10);
 
@@ -197,7 +197,7 @@ void loop()
   // (with a blinking cursor over the a)
   lcd.clear();
   lcd.print("abcdefghijklmnopqrstuvwxyz0123456789!@#$");
-  lcd.gotoLine(1);
+  lcd.gotoXY(0, 1);
   lcd.print("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789%^&*");
   lcd.scrollDisplayRight();
   lcd.scrollDisplayRight();
