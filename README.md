@@ -18,7 +18,7 @@ This library should work with any board that can be programmed by those versions
 
 ## Getting Started
 
-Download the [pololu-hd44780-arduino library from github](https://github.com/pololu/pololu-hd44780-arduino), decompress it, and drag the "PololuHD44780" folder into the "libraries" subdirectory inside your Arduino sketchbook directory.  You can view your sketchbook location by selecting File->Preferences in the Arduino environment.  If there is not already a "libraries" folder in that location, you should create it yourself.  After installing the library, restart the Arduino environment.  Example code for using this library can be found in the File->Examples menu.
+Download the [pololu-hd44780-arduino library from GitHub](https://github.com/pololu/pololu-hd44780-arduino), decompress it, and drag the "PololuHD44780" folder into the "libraries" subdirectory inside your Arduino sketchbook directory.  You can view your sketchbook location by selecting File->Preferences in the Arduino environment.  If there is not already a "libraries" folder in that location, you should create it yourself.  After installing the library, restart the Arduino environment.  Example code for using this library can be found in the File->Examples menu.
 
 ## Creating a PololuHD44780 object
 
