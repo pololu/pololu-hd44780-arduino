@@ -110,29 +110,33 @@ void loop()
   lcd.display();
   wait(40);
 
-  // Test cursor().  The space should have a cursor on it now.
+  // Test cursor().  The space should have a solid cursor.
   lcd.cursor();
   lcd.gotoXY(2, 0);
   wait(45);
 
-  // Test noCursor().  The cursor should be gone.
+  // Test blink().  There should be a solid cursor AND a blinking one.
+  lcd.blink();
+  wait(55);
+
+  // Test noCursor().  There should just be a blinking cursor.
   lcd.noCursor();
   wait(50);
 
+  // Test noBlink().  No cursor.
+  lcd.noBlink();
+  wait(60);
+
   // Test cursorSolid().  The cursor should be solid.
   lcd.cursorSolid();
-  wait(60);
+  wait(70);
+
+  // Test hideCursor().  The cursor shoule be gone.
+  lcd.hideCursor();
+  wait(80);
 
   // Test cursorBlinking().  The cursor should be blinking.
   lcd.cursorBlinking();
-  wait(70);
-
-  // Test noBlink().  The cursor should be solid.
-  lcd.noBlink();
-  wait(80);
-
-  // Test blink().  The cursor should be blinking.
-  lcd.blink();
   wait(90);
 
   // Test scrollDisplayLeft.
