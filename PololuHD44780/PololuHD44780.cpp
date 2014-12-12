@@ -1,3 +1,5 @@
+// Copyright Pololu Corporation.  For more information, see http://www.pololu.com/
+
 #include <PololuHD44780.h>
 
 #define LCD_CLEAR       0x01
