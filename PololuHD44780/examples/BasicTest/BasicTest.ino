@@ -5,7 +5,7 @@ in the upper left corner and the letter "i" should be blinking.
 If this doesn't work for you, be sure to check all of your
 connections to the LCD, including GND, VCC, VO, RS, RW, E, DB4,
 DB5, DB6, and DB7.  Make sure RW is tied to GND or pulled low
-with a strong pull-up resistor (at most 1.5 kilOhms).  Try
+with a strong pull-down resistor (at most 1.5 kilOhms).  Try
 adjusting the contrast of your LCD, especially if all the pixels
 are black or all the pixels are clear.  Also try power cycling
 the system in case the LCD is in a bad state. */
