@@ -29,4 +29,4 @@ noAutoscroll	KEYWORD2
 command	KEYWORD2
 write	KEYWORD2
 
-PololuHD44780                           KEYWORD1
+PololuHD44780	KEYWORD1
