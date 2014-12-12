@@ -1,4 +1,4 @@
-/** Test program for the PololuHD44780 library which test all of
+/** Test program for the PololuHD44780 library which tests all of
  * the functions it defines.  This program is mainly meant as a
  * test suite for library developers who want to make sure that
  * their changes did not break any previously-working features of
@@ -131,7 +131,7 @@ void loop()
   lcd.cursorSolid();
   wait(70);
 
-  // Test hideCursor().  The cursor shoule be gone.
+  // Test hideCursor().  The cursor should be gone.
   lcd.hideCursor();
   wait(80);
 

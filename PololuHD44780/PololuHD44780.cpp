@@ -85,7 +85,7 @@ void PololuHD44780Base::clear()
 
 void PololuHD44780Base::gotoXY(uint8_t x, uint8_t y)
 {
-    // Each entry if the RAM address of a line, with its most
+    // Each entry is the RAM address of a line, with its most
     // significant bit set for convenience.
     const uint8_t line_mem[] = {0x80, 0xC0, 0x94, 0xD4};
 
