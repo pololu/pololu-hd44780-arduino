@@ -34,7 +34,7 @@ the Library Manager to install this library:
 If this does not work, you can manually install the library:
 
 1. Download the
-   [latest release archive from GitHub](https://github.com/pololu/pololu-hd47780-arduino/releases)
+   [latest release archive from GitHub](https://github.com/pololu/pololu-hd44780-arduino/releases)
    and decompress it.
 2. Rename the folder "pololu-hd44780-arduino-xxxx" to "PololuHD44780".
 3. Drag the "PololuHD44780" folder into the "libraries" directory inside your
