@@ -10,10 +10,9 @@ install:
 env:
 - BOARD=uno
 - BOARD=leonardo
+- BOARD=micro
 - BOARD=megaatmega2560
-- BOARD=due
-- BOARD=genuino101
-- BOARD=zero
+- BOARD=yun
 
 script:
 - for e in $(find examples -name \*.ino); do
