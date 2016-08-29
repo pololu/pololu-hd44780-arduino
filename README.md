@@ -71,7 +71,7 @@ lcd.print(13);
 lcd.print(14, HEX);
 ~~~
 
-The `print` function is provided by Arduino's `Print` class, so it behaves just like the `print` function on the `Serial` object and can print a lot of different things.  See the [Arduino print() documentation](https://arduino.cc/en/Serial/Print) for more information, or look at the overloads of print that are defined in [Print.h in the Arduino IDE source code](https://github.com/arduino/Arduino/blob/master/hardware/arduino/cores/arduino/Print.h).
+The `print` function is provided by Arduino's `Print` class, so it behaves just like the `print` function on the `Serial` object and can print a lot of different things.  See the [Arduino print() documentation](https://arduino.cc/en/Serial/Print) for more information, or look at the overloads of print that are defined in [Print.h in the Arduino IDE source code](https://github.com/arduino/Arduino/blob/master/hardware/arduino/avr/cores/arduino/Print.h).
 
 To control where data is printed on the LCD, you can use `gotoXY()`.  The following code positions the cursor on the first column (column 0) of the second line (line 1):
 
