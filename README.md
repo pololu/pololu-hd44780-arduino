@@ -9,7 +9,7 @@ Release date: 2016-08-17<br/>
 
 This is a C++ library for the Arduino IDE that allows you to control an LCD that uses the Hitachi HD44780 protocol.  This library is very similar to the [LiquidCrystal library](https://arduino.cc/en/Reference/LiquidCrystal), but it provides more separation between the low-level hardware access functions and the high-level functions so that the low-level functions can be replaced if necessary.
 
-This library assumes that you have the RS, E, DB4, DB5. DB6, and DB7 pins of the LCD connected to your microcontroller, and that the RW pin is pulled low.  With this configuration, it is not possible to poll the LCD's busy flag, so blocking delays are used after each command in order to give it time to complete.
+This library assumes that you have the RS, E, DB4, DB5, DB6, and DB7 pins of the LCD connected to your microcontroller, and that the RW pin is pulled low.  With this configuration, it is not possible to poll the LCD's busy flag, so blocking delays are used after each command in order to give it time to complete.
 
 ## Supported platforms
 
