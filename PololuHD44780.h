@@ -11,6 +11,7 @@
 
 #pragma once
 #include <Arduino.h>
+#include <util/delay.h>
 
 /*! \brief General class for handling the HD44780 protocol.
  *
@@ -415,9 +416,9 @@ private:
         digitalWrite(db7, data >> 3 & 1);
 
         digitalWrite(e, HIGH);
-        delayMicroseconds(1);  // Must be at least 450 ns.
+        _delay_us(1);  // Must be at least 450 ns.
         digitalWrite(e, LOW);
-        delayMicroseconds(1);  // Must be at least 550 ns.
+        _delay_us(1);  // Must be at least 550 ns.
     }
 
     uint8_t rs, e, db4, db5, db6, db7;
